@@ -18,3 +18,36 @@ def test_health_check():
 
     assert response.status_code == 200
     assert response.json()["status"] == "healthy"
+
+#Second part
+def test_agent_run():
+    response = client.post(
+        "/agent/run",
+        json={
+            "task": "Analyze customer churn"
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["success"] is True
+    assert data["agent"] == "AgentForge-Agent"
+    assert data["task"] == "Analyze customer churn"
+
+
+def test_agent_empty_task():
+    response = client.post(
+        "/agent/run",
+        json={
+            "task": ""
+        }
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["success"] is False
+    assert data["error"] == "Task cannot be empty"
