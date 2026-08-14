@@ -1,8 +1,14 @@
 from fastapi import FastAPI
 
 from backend.app.agent import Agent
-from backend.app.schemas import AgentRequest, AgentResponse
-
+from backend.app.schemas import (
+    AgentRequest,
+    AgentResponse,
+    ToolRequest,
+    ToolResponse,
+)
+from backend.app.tools.calculator import CalculatorTool
+from backend.app.tools.registry import ToolRegistry
 
 app = FastAPI(
     title="AgentForge",
@@ -11,7 +17,10 @@ app = FastAPI(
 )
 
 
-agent = Agent()
+tool_registry = ToolRegistry()
+tool_registry.register(CalculatorTool())
+
+agent = Agent(tool_registry=tool_registry)
 
 
 @app.get("/")
@@ -33,3 +42,11 @@ def health_check():
 @app.post("/agent/run", response_model=AgentResponse)
 def run_agent(request: AgentRequest):
     return agent.run(request.task)
+
+
+@app.post("/agent/tool", response_model=ToolResponse)
+def run_tool(request: ToolRequest):
+    return agent.run_tool(
+        request.tool,
+        **request.arguments,
+    )

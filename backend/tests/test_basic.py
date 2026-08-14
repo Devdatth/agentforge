@@ -51,3 +51,39 @@ def test_agent_empty_task():
 
     assert data["success"] is False
     assert data["error"] == "Task cannot be empty"
+
+def test_agent_tool_endpoint():
+    response = client.post(
+        "/agent/tool",
+        json={
+            "tool": "calculator",
+            "arguments": {
+                "expression": "25 * 48"
+            },
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["success"] is True
+    assert data["tool"] == "calculator"
+    assert data["result"] == 1200
+
+
+def test_agent_tool_unknown_tool():
+    response = client.post(
+        "/agent/tool",
+        json={
+            "tool": "unknown",
+            "arguments": {},
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["success"] is False
+    assert data["error"] == "Tool 'unknown' not found"   
