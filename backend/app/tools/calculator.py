@@ -16,6 +16,17 @@ class CalculatorTool(BaseTool):
         "times",
         "minus",
     ]
+    keywords = [
+        "calculate",
+        "calculator",
+        "add",
+        "addition",
+        "subtract",
+        "minus",
+        "multiply",
+        "times",
+        "divide",
+    ]
 
     def run(self, expression: str):
         try:
