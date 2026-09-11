@@ -134,21 +134,29 @@ def test_agent_execution_trace():
     agent = Agent()
 
     result = agent.run_task("Calculate 10+5")
-    print("\nFULL RESULT:")
-    print(result)
 
-    print("\nAVAILABLE TOOLS:")
-    print(agent.get_available_tools())
-
-    assert result["success"] is True,result
-
+    assert result["success"] is True
     assert "trace" in result
 
     trace = result["trace"]
 
     assert len(trace) == 3
 
+    # Tool selection trace
     assert trace[0]["step"] == "tool_selection"
+    assert trace[0]["status"] == "success"
+    assert trace[0]["tool"] == "calculator"
+
+    # Parameter extraction trace
     assert trace[1]["step"] == "parameter_extraction"
+    assert trace[1]["status"] == "success"
+    assert trace[1]["parameters"] == {
+        "expression": "10+5"
+    }
+
+    # Tool execution trace
     assert trace[2]["step"] == "tool_execution"
+    assert trace[2]["status"] == "success"
+    assert trace[2]["tool"] == "calculator"
+    assert trace[2]["result"] == 15
 

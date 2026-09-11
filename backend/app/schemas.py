@@ -8,6 +8,9 @@ class TraceStep(BaseModel):
     step: str
     status: str
     details: str
+    tool: str | None = None
+    parameters: Dict[str, Any] | None = None
+    result: object | None = None
 
 class AgentResponse(BaseModel):
     success: bool

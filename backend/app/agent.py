@@ -22,7 +22,7 @@ class Agent:
             self.tool_registry.register(WeatherTool())
 
         self.tool_selector = ToolSelector(self.tool_registry)
-        
+
     def run(self, task: str) -> Dict:
         """
         Execute an agent task.
@@ -100,7 +100,9 @@ class Agent:
                 "step": "tool_selection",
                 "status": "success",
                 "details": f"Selected tool: {tool_name}",
+                "tool": tool_name,
     })
+    
 
         if tool_name is None:
             return {
@@ -117,7 +119,8 @@ class Agent:
         trace.append({
             "step": "parameter_extraction",
             "status": "success",
-            "details": f"Extracted parameters: {kwargs}",
+            "details": "Parameters extracted successfully",
+            "parameters": kwargs,
 })
 
         if kwargs is None:
@@ -129,6 +132,8 @@ class Agent:
                 "step": "tool_execution",
                 "status": "success" if result["success"] else "failed",
                 "details": f"Executed tool: {tool_name}",
+                "tool": tool_name,
+                "result": result.get("result") if result["success"] else None,
 })
 
         result["task"] = task
