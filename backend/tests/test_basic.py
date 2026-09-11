@@ -24,7 +24,7 @@ def test_agent_run():
     response = client.post(
         "/agent/run",
         json={
-            "task": "Analyze customer churn"
+            "task": "Calculate 10+5"
         }
     )
 
@@ -33,8 +33,8 @@ def test_agent_run():
     data = response.json()
 
     assert data["success"] is True
-    assert data["agent"] == "AgentForge-Agent"
-    assert data["task"] == "Analyze customer churn"
+    assert data["task"] == "Calculate 10+5"
+    assert data["selected_tool"] == "calculator"
 
 
 def test_agent_empty_task():

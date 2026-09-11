@@ -79,10 +79,14 @@ class Agent:
         and execute it.
         """
 
-        if not task.strip():
+        if not task or not task.strip():
             return {
                 "success": False,
-                "error": "Task cannot be empty",
+                "task": task,
+                "selected_tool": None,
+                "tool": None,
+                "result": None,
+                "error": "Task cannot be empty"
             }
 
         tool_name = self.tool_selector.select(task)
@@ -90,8 +94,12 @@ class Agent:
         if tool_name is None:
             return {
                 "success": False,
+                "task": task,
+                "selected_tool": None,
+                "tool": None,
+                "result": None,
                 "error": "No suitable tool found",
-            }
+    }
 
         kwargs = self._extract_parameters(task, tool_name)
 

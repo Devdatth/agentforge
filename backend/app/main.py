@@ -41,7 +41,7 @@ def health_check():
 
 @app.post("/agent/run", response_model=AgentResponse)
 def run_agent(request: AgentRequest):
-    return agent.run(request.task)
+    return agent.run_task(request.task)
 
 
 @app.post("/agent/tool", response_model=ToolResponse)

@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 class BaseTool(ABC):
     name: str
     description: str
-    capabilities: list[str] = []
+    capabilities: list[str]
+    keywords: list[str]
 
     @abstractmethod
     def run(self, **kwargs):
