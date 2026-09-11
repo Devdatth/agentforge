@@ -80,3 +80,4 @@ def test_selector_can_select_weather_tool():
     assert selector.select("What is the weather today?") == "weather"
     assert selector.select("What is the temperature?") == "weather"
     assert selector.select("Give me the forecast") == "weather"    
+

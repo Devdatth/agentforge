@@ -1,7 +1,10 @@
 from typing import Dict
 from backend.app.tools.registry import ToolRegistry
 from backend.app.tools.selector import ToolSelector
-
+from .tools.registry import ToolRegistry
+from .tools.selector import ToolSelector
+from .tools.calculator import CalculatorTool
+from .tools.weather import WeatherTool
 
 class Agent:
     """
@@ -11,15 +14,15 @@ class Agent:
     discover and execute available tools.
     """
 
-    def __init__(
-        self,
-        name: str = "AgentForge-Agent",
-        tool_registry: ToolRegistry | None = None,
-    ):
-        self.name = name
+    def __init__(self, tool_registry=None):
         self.tool_registry = tool_registry or ToolRegistry()
-        self.tool_selector = ToolSelector(self.tool_registry)
 
+        if not self.tool_registry.list_tools():
+            self.tool_registry.register(CalculatorTool())
+            self.tool_registry.register(WeatherTool())
+
+        self.tool_selector = ToolSelector(self.tool_registry)
+        
     def run(self, task: str) -> Dict:
         """
         Execute an agent task.
@@ -74,6 +77,7 @@ class Agent:
                 "error": str(exc),
             }
     def run_task(self, task: str) -> Dict:
+        trace = []
         """
         Select an appropriate tool for a task, extract parameters,
         and execute it.
@@ -91,6 +95,13 @@ class Agent:
 
         tool_name = self.tool_selector.select(task)
 
+        if tool_name is not None:
+            trace.append({
+                "step": "tool_selection",
+                "status": "success",
+                "details": f"Selected tool: {tool_name}",
+    })
+
         if tool_name is None:
             return {
                 "success": False,
@@ -103,13 +114,26 @@ class Agent:
 
         kwargs = self._extract_parameters(task, tool_name)
 
+        trace.append({
+            "step": "parameter_extraction",
+            "status": "success",
+            "details": f"Extracted parameters: {kwargs}",
+})
+
         if kwargs is None:
             kwargs = {}
 
         result = self.run_tool(tool_name, **kwargs)
 
+        trace.append({
+                "step": "tool_execution",
+                "status": "success" if result["success"] else "failed",
+                "details": f"Executed tool: {tool_name}",
+})
+
         result["task"] = task
         result["selected_tool"] = tool_name
+        result["trace"] = trace
 
         return result
 

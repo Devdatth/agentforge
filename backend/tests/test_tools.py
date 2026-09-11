@@ -129,3 +129,26 @@ def test_agent_extracts_empty_weather_city():
     assert result == {
         "city": ""
     }           
+
+def test_agent_execution_trace():
+    agent = Agent()
+
+    result = agent.run_task("Calculate 10+5")
+    print("\nFULL RESULT:")
+    print(result)
+
+    print("\nAVAILABLE TOOLS:")
+    print(agent.get_available_tools())
+
+    assert result["success"] is True,result
+
+    assert "trace" in result
+
+    trace = result["trace"]
+
+    assert len(trace) == 3
+
+    assert trace[0]["step"] == "tool_selection"
+    assert trace[1]["step"] == "parameter_extraction"
+    assert trace[2]["step"] == "tool_execution"
+

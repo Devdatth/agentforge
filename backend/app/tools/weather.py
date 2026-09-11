@@ -1,3 +1,4 @@
+from .base import BaseTool
 class WeatherTool(BaseTool):
     name = "weather"
     description = "Provides weather information for a city."
