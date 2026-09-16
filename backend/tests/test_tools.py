@@ -160,3 +160,100 @@ def test_agent_execution_trace():
     assert trace[2]["tool"] == "calculator"
     assert trace[2]["result"] == 15
 
+def test_agent_execution_steps():
+    agent = Agent()
+
+    result = agent.run_task("Calculate 10+5")
+
+    assert result["success"] is True
+    assert "execution_steps" in result
+
+    steps = result["execution_steps"]
+
+    assert len(steps) == 1
+
+    step = steps[0]
+
+    assert step["step_number"] == 1
+    assert step["tool"] == "calculator"
+    assert step["parameters"] == {
+        "expression": "10+5"
+    }
+    assert step["status"] == "success"
+    assert step["result"] == 15
+
+def test_agent_multi_step_task():
+    agent = Agent()
+
+    result = agent.run_multi_step_task(
+        "Calculate 10+5 and tell me the weather in Pune"
+    )
+
+    assert result["success"] is True
+    assert result["task"] == "Calculate 10+5 and tell me the weather in Pune"
+
+    steps = result["execution_steps"]
+
+    assert len(steps) == 2
+
+    # Step 1: Calculator
+    assert steps[0]["step_number"] == 1
+    assert steps[0]["tool"] == "calculator"
+    assert steps[0]["parameters"] == {
+        "expression": "10+5"
+    }
+    assert steps[0]["status"] == "success"
+    assert steps[0]["result"] == 15
+
+    # Step 2: Weather
+    assert steps[1]["step_number"] == 2
+    assert steps[1]["tool"] == "weather"
+    assert steps[1]["parameters"] == {
+        "city": "Pune"
+    }
+    assert steps[1]["status"] == "success"
+
+def test_agent_multi_step_task_stops_on_failure():
+    agent = Agent()
+
+    result = agent.run_multi_step_task(
+        "Calculate 10+5 and do something impossible"
+    )
+
+    assert result["success"] is False
+    assert result["task"] == "Calculate 10+5 and do something impossible"
+
+    steps = result["execution_steps"]
+
+    assert len(steps) == 2
+
+    # First step succeeds
+    assert steps[0]["step_number"] == 1
+    assert steps[0]["tool"] == "calculator"
+    assert steps[0]["status"] == "success"
+    assert steps[0]["result"] == 15
+
+    # Second step fails because no suitable tool exists
+    assert steps[1]["step_number"] == 2
+    assert steps[1]["tool"] is None
+    assert steps[1]["status"] == "failed"   
+
+def test_run_task_automatically_handles_multi_step_task():
+    agent = Agent()
+
+    result = agent.run_task(
+        "Calculate 10+5 and tell me the weather in Pune"
+    )
+
+    assert result["success"] is True
+    assert result["task"] == "Calculate 10+5 and tell me the weather in Pune"
+
+    assert len(result["execution_steps"]) == 2
+
+    assert result["execution_steps"][0]["tool"] == "calculator"
+    assert result["execution_steps"][0]["result"] == 15
+
+    assert result["execution_steps"][1]["tool"] == "weather"
+    assert result["execution_steps"][1]["parameters"] == {
+        "city": "Pune"
+    }

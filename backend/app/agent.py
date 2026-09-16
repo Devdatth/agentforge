@@ -78,6 +78,7 @@ class Agent:
             }
     def run_task(self, task: str) -> Dict:
         trace = []
+        execution_steps = []
         """
         Select an appropriate tool for a task, extract parameters,
         and execute it.
@@ -92,7 +93,11 @@ class Agent:
                 "result": None,
                 "error": "Task cannot be empty"
             }
+        tasks = self._split_task(task)
 
+        if len(tasks) > 1:
+         return self.run_multi_step_task(task)
+            
         tool_name = self.tool_selector.select(task)
 
         if tool_name is not None:
@@ -128,6 +133,16 @@ class Agent:
 
         result = self.run_tool(tool_name, **kwargs)
 
+        execution_step = {
+            "step_number": len(execution_steps) + 1,
+            "tool": tool_name,
+            "parameters": kwargs,
+            "status": "success" if result["success"] else "failed",
+            "result": result.get("result"),
+        }
+
+        execution_steps.append(execution_step)
+
         trace.append({
                 "step": "tool_execution",
                 "status": "success" if result["success"] else "failed",
@@ -139,8 +154,68 @@ class Agent:
         result["task"] = task
         result["selected_tool"] = tool_name
         result["trace"] = trace
+        result["execution_steps"] = execution_steps
 
         return result
+
+    def _split_task(self, task: str) -> list[str]:
+        """
+        Split a task into multiple smaller tasks.
+        """
+
+        parts = [
+            part.strip()
+            for part in task.split(" and ")
+            if part.strip()
+        ]
+
+        return parts
+
+    def run_multi_step_task(self, task: str) -> Dict:
+        """
+        Execute multiple tasks sequentially.
+        """
+
+        tasks = self._split_task(task)
+
+        if not tasks:
+            return {
+                "success": False,
+                "task": task,
+                "execution_steps": [],
+                "error": "No tasks found",
+            }
+
+        execution_steps = []
+
+        for step_number, subtask in enumerate(tasks, start=1):
+            result = self.run_task(subtask)
+
+            execution_steps.append({
+                "step_number": step_number,
+                "tool": result.get("selected_tool"),
+                "parameters": (
+                    result["execution_steps"][0]["parameters"]
+                    if result.get("execution_steps")
+                    else {}
+                ),
+                "status": "success" if result["success"] else "failed",
+                "result": result.get("result"),
+            })
+
+            if not result["success"]:
+                return {
+                    "success": False,
+                    "task": task,
+                    "execution_steps": execution_steps,
+                    "error": result.get("error"),
+                }
+
+        return {
+            "success": True,
+            "task": task,
+            "execution_steps": execution_steps,
+        }
 
     def _extract_parameters(self, task: str, tool_name: str) -> Dict:
         """
@@ -167,6 +242,7 @@ class Agent:
 
             for phrase in [
                 "what is the weather in",
+                "tell me the weather in",
                 "what's the weather in",
                 "what is the weather",
                 "what's the weather",

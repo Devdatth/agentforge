@@ -12,6 +12,13 @@ class TraceStep(BaseModel):
     parameters: Dict[str, Any] | None = None
     result: object | None = None
 
+class ExecutionStep(BaseModel):
+    step_number: int
+    tool: str
+    parameters: dict
+    status: str
+    result: object | None = None
+
 class AgentResponse(BaseModel):
     success: bool
     task: str
@@ -20,6 +27,7 @@ class AgentResponse(BaseModel):
     result: object | None = None
     error: str | None = None
     trace: List[TraceStep] = []
+    execution_steps: list[ExecutionStep] = []
 
 class ToolRequest(BaseModel):
     tool: str
